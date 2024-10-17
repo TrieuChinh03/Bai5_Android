@@ -1,37 +1,33 @@
 package dnt.vip.bai5_android.service
 
-
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.work.Worker
-import androidx.work.WorkerParameters
 import dnt.vip.bai5_android.R
 import dnt.vip.bai5_android.model.Task
 import dnt.vip.bai5_android.provider.loadTasks
 import kotlinx.coroutines.runBlocking
 
-class ReminderWorker(appContext: Context, workerParams: WorkerParameters)
-    : Worker(appContext, workerParams) {
+class ReminderReceiver : BroadcastReceiver() {
 
     companion object {
-        const val CHANNEL_ID = "reminder_channel"
+        const val CHANNEL_ID = "bai5"
     }
 
-    //---   Hàm thực thi    ---
-    override fun doWork(): Result {
-
-        //---   Tải dữ liệu từ bài 4    ---
+    override fun onReceive(context: Context, intent: Intent) {
+        //---   Tải dữ liệu bài 4    ---
         val tasks = mutableListOf<Task>()
         runBlocking {
-            loadTasks(applicationContext.contentResolver, tasks)
+            loadTasks(context.contentResolver, tasks)
         }
 
-        //---   Xây dựng nội dung thông báo   ---
+        //---  Xây dựng thông báo   ---
         if (tasks.isEmpty()) {
-            showNotification("Không có công việc nào", "Bạn đang rảnh rỗi!")
+            showNotification(context, "Không có công việc nào", "Bạn đang rảnh rỗi!")
         } else {
             val buildContent = StringBuilder()
             var index = 1
@@ -41,24 +37,22 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters)
                 index++
             }
             showNotification(
+                context,
                 "Bạn có ${tasks.size} công việc cần làm",
                 buildContent.toString()
             )
         }
-
-        return Result.success()
     }
 
-    //===   Hàm hiển thị thông báo    ===
-    private fun showNotification(title: String, content: String) {
-        //---   Tạo kênh    ---
-        createNotificationChannel(applicationContext)
+    //===   Hàm hiển thị thông báo  ===
+    private fun showNotification(context: Context, title: String, content: String) {
+        createNotificationChannel(context)
 
-        //---   Xây dựng thông báo    ---
-        val notificationManager = ContextCompat.getSystemService(applicationContext, NotificationManager::class.java) as NotificationManager
-        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+        val notificationManager = ContextCompat.getSystemService(context, NotificationManager::class.java) as NotificationManager
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(content)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(content))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
@@ -66,11 +60,11 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters)
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
-    //===   Hàm tạo kênh channel    ===
+    //===   Hàm tạo kênh chanel   ===
     private fun createNotificationChannel(context: Context) {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Bai 5 Android",
+            "Nhắc nhở bài 5",
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "Channel for daily reminders"
