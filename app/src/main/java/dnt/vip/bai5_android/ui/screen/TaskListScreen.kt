@@ -39,6 +39,7 @@ private fun TaskItemPreview() {
     TaskItem(task = Task(2, "Công việc 1", "Nội dung công việc 1" ,"21/09/2023"))
 }
 
+//Screen danh sách công việc    -------------------------------------------------------------
 @Composable
 fun TaskListScreen() {
     val tasks = remember { mutableStateListOf<Task>() }
@@ -56,25 +57,43 @@ fun TaskListScreen() {
             .fillMaxSize()
             .padding(20.dp)
     ) {
-
-        //LAZYCOLUMN danh sách công việc ----------------------------------------------------
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            itemsIndexed(tasks) { index, task ->
-                if(current.intValue < index) {
-                    current.intValue = index
-                    AdapterTast(task = task, animation = true, delay = 50L * index)
-                }
-                else {
-                    AdapterTast(task = task, animation = false, delay = 0)
+            //TEXT tiêu đề  ------------------------------------------------------
+            Text(
+                text = "Danh sách công việc hôm nay",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (tasks.isEmpty()) {
+                Text(
+                    text = "Hôm nay bạn rảnh!",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else {
+                //LAZYCOLUMN danh sách công việc    --------------------------------------------
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    itemsIndexed(tasks) { index, task ->
+                        if (current.intValue < index) {
+                            current.intValue = index
+                            AdapterTast(task = task, animation = true, delay = 50L * index)
+                        } else {
+                            AdapterTast(task = task, animation = false, delay = 0)
+                        }
+                    }
                 }
             }
         }
     }
 }
+
 
 /**     Adapter Item    **/
 @Composable

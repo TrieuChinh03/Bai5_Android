@@ -28,5 +28,5 @@
 
     <queries>
         <package android:name="dnt.kotlin.bai4_quanly_congviec" />
-    </queries>.
+    </queries>
 </manifest>

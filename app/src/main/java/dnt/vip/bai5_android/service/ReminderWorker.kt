@@ -16,56 +16,66 @@ import kotlinx.coroutines.runBlocking
 class ReminderWorker(appContext: Context, workerParams: WorkerParameters)
     : Worker(appContext, workerParams) {
 
+    companion object {
+        const val CHANNEL_ID = "reminder_channel"
+    }
+
+    //---   Hàm thực thi    ---
     override fun doWork(): Result {
+
+        //---   Tải dữ liệu từ bài 4    ---
         val tasks = mutableListOf<Task>()
         runBlocking {
             loadTasks(applicationContext.contentResolver, tasks)
         }
 
+        //---   Xây dựng nội dung thông báo   ---
         if (tasks.isEmpty()) {
             showNotification("Không có công việc nào", "Bạn đang rảnh rỗi!")
         } else {
+            val buildContent = StringBuilder()
+            var index = 1
+
             tasks.forEach { task ->
-                showNotification(task.title, task.content)
+                buildContent.append("\nCông việc $index: ${task.title}")
+                index++
             }
+            showNotification(
+                "Bạn có ${tasks.size} công việc cần làm",
+                buildContent.toString()
+            )
         }
 
         return Result.success()
     }
 
+    //===   Hàm hiển thị thông báo    ===
     private fun showNotification(title: String, content: String) {
-        // Tạo Notification Channel (chỉ cần tạo một lần)
+        //---   Tạo kênh    ---
         createNotificationChannel(applicationContext)
 
-        val notificationManager = ContextCompat.getSystemService(
-            applicationContext,
-            NotificationManager::class.java
-        ) as NotificationManager
-
+        //---   Xây dựng thông báo    ---
+        val notificationManager = ContextCompat.getSystemService(applicationContext, NotificationManager::class.java) as NotificationManager
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(content)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Thay bằng icon của bạn
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
+    //===   Hàm tạo kênh channel    ===
     private fun createNotificationChannel(context: Context) {
-        val name = "Reminder Channel"
-        val descriptionText = "Channel for daily reminders"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-            description = descriptionText
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "Bai 5 Android",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Channel for daily reminders"
         }
-        val notificationManager: NotificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
-    }
-
-    companion object {
-        const val CHANNEL_ID = "reminder_channel"
-        const val NOTIFICATION_ID = 1
     }
 }

@@ -21,6 +21,7 @@ import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,28 +34,32 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Lên lịch WorkRequest
+        createReminder()
+    }
+
+    //===   Hàm tạo lịch thông báo    ===
+    private fun createReminder() {
         val reminderWorkRequest = PeriodicWorkRequestBuilder<ReminderWorker>(24, TimeUnit.HOURS)
-            .setInitialDelay(calculateInitialDelay(), TimeUnit.MILLISECONDS)
+            .setInitialDelay(setNotificationTime(), TimeUnit.MILLISECONDS)
             .setConstraints(
                 Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
             )
 
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            "reminder_work",
+            "reminder_task",
             ExistingPeriodicWorkPolicy.KEEP,
             reminderWorkRequest.build()
         )
     }
 
-    // Hàm tính toán độ trễ ban đầu để tác vụ chạy lần đầu vào 6h sáng
-    private fun calculateInitialDelay(): Long {
+    //===   Hàm đặt thời gian thông báo    ===
+    private fun setNotificationTime(): Long {
         val now = Calendar.getInstance()
         val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 15)
-            set(Calendar.MINUTE, 32)
+            set(Calendar.HOUR_OF_DAY, 6)
+            set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
         }
 
